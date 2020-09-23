@@ -3,6 +3,7 @@ package com.aiden.allaboutwebview;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -13,6 +14,7 @@ public class MainActivity extends AppCompatActivity {
     private WebView mWebView = null;
     private WebSettings mWebViewSettings = null;
     private final String YOUTUBE_URL="http://youtube.com";
+    private boolean mIsOnPause = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,16 +28,32 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         init();
+
+        if(mIsOnPause) {
+            mWebView.onResume();
+            mIsOnPause = false;
+        }
     }
 
     @Override
     protected void onPause() {
         super.onPause();
+        if(mWebView!=null) {
+            mWebView.onPause();
+            /*onPause 됐을 때 이전 상태 그대로 유지
+               javascript는 일시중지 하지 않는다.
+             */
+            mIsOnPause = true;
+        }
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        if(mWebView!=null) {
+            mWebView.destroy();
+            mWebView = null;
+        }
     }
 
 
@@ -43,7 +61,7 @@ public class MainActivity extends AppCompatActivity {
         mWebView = findViewById(R.id.web_view);
         mWebViewSettings = mWebView.getSettings();
         mWebView.loadUrl(YOUTUBE_URL);
-        mWebView.setWebChromeClient(new WebChromeClient());
+          mWebView.setWebChromeClient(new WebChromeClient());
         mWebView.setWebViewClient(new WebViewClientClass());
          mWebViewSettings.setJavaScriptEnabled(true);
     }
